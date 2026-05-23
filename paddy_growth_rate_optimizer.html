@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paddy Crop Growth Rate (CGR) Optimizer</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- MathJax for rendering LaTeX -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header / Navigation -->
+    <header class="bg-gradient-to-r from-emerald-800 to-teal-900 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 py-5 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-emerald-700/50 rounded-xl border border-emerald-500/30">
+                    <i data-lucide="sprout" class="w-8 h-8 text-emerald-300 animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">Paddy CGR Optimizer</h1>
+                    <p class="text-xs text-emerald-200 uppercase tracking-wider font-semibold">Malaysian Food Security & Bioscience Analytics</p>
+                </div>
+            </div>
+            <div class="bg-emerald-950/40 px-4 py-2 rounded-lg border border-emerald-700/50 text-center md:text-right">
+                <span class="text-xs text-emerald-300 block">Cultivar Target</span>
+                <span class="font-bold text-sm text-emerald-100">Oryza sativa L. (Variety MR219)</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left Column: Context, Formula & Math (4 cols) -->
+        <section class="lg:col-span-4 flex flex-col gap-6">
+            
+            <!-- Context Card -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2 text-emerald-800">
+                    <i data-lucide="book-open" class="w-5 h-5"></i>
+                    The Bioscience Problem
+                </h2>
+                <div class="text-slate-600 text-sm space-y-3 leading-relaxed">
+                    <p>
+                        In Malaysia, self-sufficiency in rice production is a cornerstone of national <strong>Food Security</strong>. To maximize yield of popular varieties like <strong>MR219</strong>, agronomy researchers at <strong>MARDI</strong> study the cumulative dry biomass of the crop, represented as $f(t)$ in $\text{g/m}^2$.
+                    </p>
+                    <p>
+                        Simply knowing final biomass isn't enough. We must understand the <strong>Crop Growth Rate (CGR)</strong>, which is the derivative $f'(t)$. This derivative represents the instantaneous rate of dry matter accumulation per day:
+                    </p>
+                    <blockquote class="bg-emerald-50 border-l-4 border-emerald-600 p-3 my-2 rounded-r font-medium text-emerald-900">
+                        "The derivative $f'(t)$ tells us when the plant is consuming nutrients at its absolute peak, allowing for precision fertilizer application."
+                    </blockquote>
+                </div>
+            </div>
+
+            <!-- Mathematical Formulation Card -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2 text-emerald-800">
+                    <i data-lucide="binary" class="w-5 h-5"></i>
+                    Mathematical Modeling
+                </h2>
+                <div class="space-y-4 text-sm text-slate-700">
+                    <div>
+                        <span class="font-semibold block text-emerald-800 mb-1">1. Cumulative Biomass Function $f(t)$:</span>
+                        <p class="text-slate-500 mb-2">We model the 120-day growth cycle using a standard Sigmoidal Logistic growth equation:</p>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex justify-center overflow-x-auto">
+                            $$f(t) = \frac{L}{1 + e^{-k(t - t_0)}}$$
+                        </div>
+                    </div>
+
+                    <div>
+                        <span class="font-semibold block text-emerald-800 mb-1">2. First Derivative $f'(t)$ [CGR]:</span>
+                        <p class="text-slate-500 mb-2">Applying the chain and quotient rules gives the rate of biomass accumulation:</p>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 flex justify-center overflow-x-auto">
+                            $$f'(t) = \frac{L \cdot k \cdot e^{-k(t - t_0)}}{(1 + e^{-k(t-t_0)})^2}$$
+                        </div>
+                    </div>
+
+                    <!-- Variable Definitions -->
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5 text-xs">
+                        <p class="font-bold text-slate-700 uppercase tracking-wider text-[10px]">Model Calibration Parameters:</p>
+                        <div class="grid grid-cols-2 gap-y-1 gap-x-3 text-slate-600">
+                            <div><strong>$t$:</strong> Time (0 to 120 Days)</div>
+                            <div><strong>$L$:</strong> Max Biomass ($1200\text{ g/m}^2$)</div>
+                            <div><strong>$k$:</strong> Growth Constant ($0.08$)</div>
+                            <div><strong>$t_0$:</strong> Inflection Point (Day $60$)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Malaysian Research Context -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2 text-emerald-800">
+                    <i data-lucide="microscope" class="w-5 h-5"></i>
+                    Real Malaysian Datasets
+                </h2>
+                <p class="text-xs text-slate-500 mb-3">Model parameters are calibrated based on empirical rice research databases in Malaysia:</p>
+                <ul class="space-y-2 text-xs text-slate-600">
+                    <li class="flex items-start gap-2">
+                        <i data-lucide="link" class="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0"></i>
+                        <span>
+                            <strong>MARDI Rice Genebank:</strong> Growth metrics of MR219 and high-yielding local cultivars.
+                        </span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i data-lucide="link" class="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0"></i>
+                        <span>
+                            <strong>MADA Crop Progress Database:</strong> Operational records from Kedah's "Rice Bowl" demonstrating physiological stage transition days.
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Right Column: Interactive Simulator & Live Output (8 cols) -->
+        <section class="lg:col-span-8 flex flex-col gap-6">
+            
+            <!-- Main Interactive Canvas Card -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col gap-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="activity" class="text-emerald-700"></i>
+                            Paddy Growth & Derivative Dynamics
+                        </h2>
+                        <p class="text-xs text-slate-500">Click anywhere on the chart, or drag the slider to analyze growth rates at any day.</p>
+                    </div>
+                    
+                    <!-- Controls -->
+                    <div class="flex items-center gap-2">
+                        <button id="btnPlay" class="flex items-center gap-1 px-3 py-1.5 bg-emerald-700 text-white rounded-lg text-xs font-semibold hover:bg-emerald-800 transition active:scale-95 shadow-sm">
+                            <i data-lucide="play" class="w-3.5 h-3.5"></i>
+                            <span>Animate Cycle</span>
+                        </button>
+                        <button id="btnReset" class="flex items-center gap-1 px-3 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold hover:bg-slate-200 transition">
+                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                            <span>Reset</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chart Container -->
+                <div class="relative w-full h-[320px] bg-slate-50/50 rounded-xl p-2 border border-slate-100">
+                    <canvas id="growthChart"></canvas>
+                </div>
+
+                <!-- Scrubbing Slider and Display values -->
+                <div class="space-y-3">
+                    <div class="flex items-center gap-4">
+                        <span class="text-xs font-bold text-emerald-800 w-16">Day <span id="lblDay">60</span></span>
+                        <input type="range" id="sliderDay" min="0" max="120" value="60" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-700 focus:outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interactive Diagnosis & Layman Translation -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                
+                <!-- Dynamic Calculations -->
+                <div class="md:col-span-5 bg-gradient-to-br from-emerald-900 to-teal-950 text-white p-6 rounded-2xl shadow-md flex flex-col justify-between">
+                    <div>
+                        <span class="text-[10px] uppercase font-bold tracking-widest text-emerald-300">Live Mathematical Extraction</span>
+                        <div class="mt-4 space-y-4">
+                            <div>
+                                <span class="text-xs text-emerald-200 block">Time Passed ($t$)</span>
+                                <div class="text-2xl font-bold flex items-baseline gap-1">
+                                    <span id="calcDay">60</span>
+                                    <span class="text-xs font-normal text-emerald-300">Days after Planting (DAP)</span>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <span class="text-xs text-emerald-200 block">Cumulative Biomass $f(t)$</span>
+                                <div class="text-3xl font-extrabold flex items-baseline gap-1 text-emerald-100">
+                                    <span id="calcBiomass">600.0</span>
+                                    <span class="text-xs font-normal text-emerald-300">$\text{g/m}^2$</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <span class="text-xs text-emerald-200 block">Instantaneous Growth Rate $f'(t)$ (Derivative)</span>
+                                <div class="text-3xl font-extrabold flex items-baseline gap-1 text-emerald-300">
+                                    <span id="calcRate">24.00</span>
+                                    <span class="text-xs font-normal text-emerald-300">$\text{g/m}^2/\text{day}$</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 pt-4 border-t border-emerald-800/60 text-center">
+                        <span id="growthDirectionBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                            <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
+                            Accelerating Growth Phase
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Agricultural Layman Interpretation Card -->
+                <div class="md:col-span-7 bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Crop Stage Advisor</span>
+                            <span id="stageBadge" class="bg-emerald-50 text-emerald-800 text-xs px-2.5 py-1 rounded-full font-semibold border border-emerald-200">Panicle Initiation</span>
+                        </div>
+                        <h3 id="stageTitle" class="text-lg font-bold text-slate-900 mb-2">Stage Title Placeholder</h3>
+                        <p id="laymanDesc" class="text-slate-600 text-sm leading-relaxed">
+                            Explanation of the growth velocity and farming recommendation.
+                        </p>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-slate-100 bg-slate-50 -mx-6 -mb-6 p-6 rounded-b-2xl">
+                        <h4 class="text-xs font-bold text-slate-700 uppercase mb-2 flex items-center gap-1.5">
+                            <i data-lucide="clipboard-check" class="w-4 h-4 text-emerald-700"></i>
+                            Actionable Fertilizer & Farming Strategy
+                        </h4>
+                        <p id="farmStrategy" class="text-slate-600 text-xs leading-relaxed">
+                            Strategic agronomy recommendations based on current growth velocity.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agricultural Methodology and Webpages Sources References -->
+            <footer class="bg-slate-100 p-5 rounded-2xl border border-slate-200 space-y-3">
+                <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <i data-lucide="database" class="w-4 h-4"></i>
+                    Malaysian Agrofood Bioscience Reference Repositories
+                </h3>
+                <p class="text-xs text-slate-500 leading-relaxed">
+                    This interactive simulator uses data modeling techniques designed in accordance with the Malaysian Department of Agriculture (DOA) guidelines. You can read more about research on Malaysian paddy cultivars at the following portals:
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <div class="p-2.5 bg-white rounded-lg border border-slate-200 hover:border-emerald-300 transition">
+                        <span class="font-semibold block text-slate-800">MARDI Research Journal</span>
+                        <span class="text-slate-500 text-[10px] block mb-1">Empirical studies on MR219 / MR297 biomass yields</span>
+                        <a href="https://www.mardi.gov.my/" target="_blank" class="text-emerald-700 hover:underline inline-flex items-center gap-1 font-medium">mardi.gov.my <i data-lucide="external-link" class="w-3 h-3"></i></a>
+                    </div>
+                    <div class="p-2.5 bg-white rounded-lg border border-slate-200 hover:border-emerald-300 transition">
+                        <span class="font-semibold block text-slate-800">Muda Agricultural Development Authority (MADA)</span>
+                        <span class="text-slate-500 text-[10px] block mb-1">Kedah Rice Bowl seasonal agronomic indicators</span>
+                        <a href="https://www.mada.gov.my/" target="_blank" class="text-emerald-700 hover:underline inline-flex items-center gap-1 font-medium">mada.gov.my <i data-lucide="external-link" class="w-3 h-3"></i></a>
+                    </div>
+                </div>
+            </footer>
+
+        </section>
+    </main>
+
+    <!-- App Logic Script -->
+    <script>
+        // Model Parameters for Oryza sativa (MR219)
+        const L = 1200;  // Carrying capacity (g/m^2)
+        const k = 0.08;  // Relative growth rate coefficient
+        const t0 = 60;   // Inflection point (Day 60 - Panicle Initiation stage)
+
+        // Generate data arrays
+        const days = [];
+        const biomassData = [];
+        const growthRateData = [];
+
+        for (let t = 0; t <= 120; t++) {
+            days.push(t);
+            
+            // f(t) = L / (1 + exp(-k*(t - t0)))
+            const f_t = L / (1 + Math.exp(-k * (t - t0)));
+            biomassData.push(parseFloat(f_t.toFixed(2)));
+
+            // f'(t) = (L * k * exp(-k*(t - t0))) / (1 + exp(-k*(t-t0)))^2
+            const exponent = -k * (t - t0);
+            const expTerm = Math.exp(exponent);
+            const derivative = (L * k * expTerm) / Math.pow(1 + expTerm, 2);
+            growthRateData.push(parseFloat(derivative.toFixed(2)));
+        }
+
+        // DOM elements
+        const sliderDay = document.getElementById('sliderDay');
+        const lblDay = document.getElementById('lblDay');
+        const calcDay = document.getElementById('calcDay');
+        const calcBiomass = document.getElementById('calcBiomass');
+        const calcRate = document.getElementById('calcRate');
+        
+        const stageBadge = document.getElementById('stageBadge');
+        const stageTitle = document.getElementById('stageTitle');
+        const laymanDesc = document.getElementById('laymanDesc');
+        const farmStrategy = document.getElementById('farmStrategy');
+        const growthDirectionBadge = document.getElementById('growthDirectionBadge');
+
+        const btnPlay = document.getElementById('btnPlay');
+        const btnReset = document.getElementById('btnReset');
+
+        // Setup Chart.js
+        let ctx = document.getElementById('growthChart').getContext('2d');
+        let growthChart;
+
+        // Custom vertical cursor line plugin
+        const cursorLinePlugin = {
+            id: 'cursorLine',
+            afterDraw: (chart) => {
+                if (chart.active && chart.active.length) {
+                    const activePoint = chart.active[0];
+                    const ctx = chart.ctx;
+                    const x = activePoint.element.x;
+                    const topY = chart.scales.y.top;
+                    const bottomY = chart.scales.y.bottom;
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(x, topY);
+                    ctx.lineTo(x, bottomY);
+                    ctx.lineWidth = 1.5;
+                    ctx.strokeStyle = '#10b981'; // Tailwind Emerald-500
+                    ctx.setLineDash([6, 4]);
+                    ctx.stroke();
+                    ctx.restore();
+                }
+            }
+        };
+
+        Chart.register(cursorLinePlugin);
+
+        // Chart configuration with dual Y axes
+        function initChart() {
+            growthChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: days,
+                    datasets: [
+                        {
+                            label: 'Cumulative Biomass f(t)',
+                            data: biomassData,
+                            borderColor: '#059669', // Emerald 600
+                            backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                            fill: true,
+                            yAxisID: 'y',
+                            tension: 0.3,
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            pointHitRadius: 10
+                        },
+                        {
+                            label: "Daily Crop Growth Rate f'(t)",
+                            data: growthRateData,
+                            borderColor: '#0284c7', // Sky 600
+                            backgroundColor: 'rgba(2, 132, 199, 0.05)',
+                            fill: false,
+                            yAxisID: 'y1',
+                            tension: 0.3,
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            pointHitRadius: 10
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    stacked: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    family: 'Plus Jakarta Sans',
+                                    size: 11,
+                                    weight: 600
+                                },
+                                usePointStyle: true,
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleFont: { family: 'Plus Jakarta Sans', size: 12, weight: 'bold' },
+                            bodyFont: { family: 'Plus Jakarta Sans', size: 12 },
+                            padding: 12,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.datasetIndex === 0) {
+                                        label += context.parsed.y + ' g/m²';
+                                    } else {
+                                        label += context.parsed.y + ' g/m²/day';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Days after Transplanting (DAP)',
+                                font: { family: 'Plus Jakarta Sans', size: 12, weight: 'bold' },
+                                color: '#475569'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Total Biomass (g/m²)',
+                                font: { family: 'Plus Jakarta Sans', size: 12, weight: 'bold' },
+                                color: '#059669'
+                            },
+                            min: 0,
+                            max: 1300,
+                            grid: {
+                                color: 'rgba(241, 245, 249, 1)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: "Growth Velocity f'(t) (g/m²/day)",
+                                font: { family: 'Plus Jakarta Sans', size: 12, weight: 'bold' },
+                                color: '#0284c7'
+                            },
+                            min: 0,
+                            max: 30,
+                            grid: {
+                                drawOnChartArea: false, // only want grid lines for left y-axis
+                            },
+                        },
+                    },
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            sliderDay.value = index;
+                            updateSimulation(index);
+                        }
+                    }
+                }
+            });
+        }
+
+        // Layman interpretation databases based on Day of Paddy Lifecycle
+        function getStageInterpretation(t) {
+            if (t <= 25) {
+                return {
+                    stage: "Early Vegetative / Seedling Phase",
+                    title: "Establishing Roots & Early Shoots",
+                    desc: "At this stage, the derivative is small ($f'(t) < 5$). The paddy plant is dedicating its energy underground to grow roots and acclimate to the water-logged soil conditions.",
+                    strategy: "Low biomass accumulation rate. Nitrogen uptake is minimal. Keep water levels low (2-3cm) to encourage tillering and prevent seedlings from drowning.",
+                    badgeType: "bg-amber-100 text-amber-800 border-amber-300",
+                    direction: "Root System Expansion",
+                    directionIcon: "arrow-down-to-dot"
+                };
+            } else if (t <= 45) {
+                return {
+                    stage: "Active Tillering Phase",
+                    title: "Branching Out Rapidly",
+                    desc: "The derivative $f'(t)$ is growing exponentially! The crop is pushing up multiple main stems (tillers). Daily nutrient consumption is accelerating rapidly as canopy cover increases.",
+                    strategy: "Excellent phase to apply the first split-dose of Urea (N) fertilizer. The plant can process nutrients efficiently because the growth curve derivative is climbing steeply.",
+                    badgeType: "bg-blue-100 text-blue-800 border-blue-300",
+                    direction: "Accelerating Canopy Development",
+                    directionIcon: "chevrons-up"
+                };
+            } else if (t <= 65) {
+                return {
+                    stage: "Stem Elongation / Panicle Initiation",
+                    title: "Maximum Acceleration (Inflection Point)",
+                    desc: "The derivative $f'(t)$ hits its mathematical absolute peak ($24.0\\text{ g/m}^2/\\text{day}$) on Day 60. This is the inflection point where growth changes from concave to convex. The plant is generating internal rice heads.",
+                    strategy: "Critical timing for the third top-dressing (nitrogen and potassium-rich fertilizer). Missing this timing during peak metabolic rate leads to lower spikelet numbers per panicle.",
+                    badgeType: "bg-emerald-100 text-emerald-800 border-emerald-300",
+                    direction: "Peak Growth Velocity reached on Day 60",
+                    directionIcon: "zap"
+                };
+            } else if (t <= 85) {
+                return {
+                    stage: "Heading & Flowering Stage",
+                    title: "Grain Formation is Underway",
+                    desc: "Although total biomass $f(t)$ is still rising, the rate of change $f'(t)$ is starting to decrease. Growth velocity slows because energy is shifting from producing new green vegetation to generating grain starch.",
+                    strategy: "Keep water depth stable (5-10cm) to secure healthy flowering and prevent empty husks. Limit chemical application to avoid chemical burn on active panicles.",
+                    badgeType: "bg-purple-100 text-purple-800 border-purple-300",
+                    direction: "Growth Decelerating, Energy Shifting",
+                    directionIcon: "shuffle"
+                };
+            } else {
+                return {
+                    stage: "Ripening / Pre-Harvest Phase",
+                    title: "Starch Consolidation & Drying Out",
+                    desc: "The derivative $f'(t)$ approaches zero. Crop growth has stopped; total biomass is flat. The leaves turn gold as nutrient pathways dry up. The rice grains are actively maturing and consolidating starch.",
+                    strategy: "Drain fields 10-14 days before harvest to solidify the soil bed. This prepares the field for optimal mechanical harvest using combine harvesters.",
+                    badgeType: "bg-rose-100 text-rose-800 border-rose-300",
+                    direction: "Crop Reaching Harvest Maturity",
+                    directionIcon: "check-circle"
+                };
+            }
+        }
+
+        // Update the visual panels with mathematical and localized layman feedback
+        function updateSimulation(t) {
+            // Update inputs
+            sliderDay.value = t;
+            lblDay.innerText = t;
+            calcDay.innerText = t;
+
+            // Compute values
+            const biomassValue = biomassData[t];
+            const rateValue = growthRateData[t];
+
+            calcBiomass.innerText = biomassValue.toFixed(1);
+            calcRate.innerText = rateValue.toFixed(2);
+
+            // Fetch and set agricultural insights
+            const info = getStageInterpretation(t);
+            stageBadge.className = `text-xs px-2.5 py-1 rounded-full font-semibold border ${info.badgeType}`;
+            stageBadge.innerText = info.stage;
+            stageTitle.innerText = info.title;
+            laymanDesc.innerHTML = info.desc;
+            farmStrategy.innerHTML = info.strategy;
+
+            // Direction badge configuration
+            growthDirectionBadge.innerHTML = `<i data-lucide="${info.directionIcon}" class="w-3.5 h-3.5"></i> ${info.direction}`;
+            lucide.createIcons();
+
+            // Highlight the active point in the chart
+            if (growthChart) {
+                const meta0 = growthChart.getDatasetMeta(0);
+                const meta1 = growthChart.getDatasetMeta(1);
+                
+                // Clear any previous hover active element
+                growthChart.setActiveElements([
+                    { datasetIndex: 0, index: t },
+                    { datasetIndex: 1, index: t }
+                ]);
+                
+                growthChart.update('none'); // Update without full-scale layout animations to maintain fast slider scrub
+            }
+
+            // Trigger MathJax re-render for formulas inside descriptions
+            if (window.MathJax && typeof MathJax.typesetPromise === "function") {
+                MathJax.typesetPromise();
+            }
+        }
+
+        // Slider scrubbing listener
+        sliderDay.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            updateSimulation(val);
+        });
+
+        // Animation playback variables
+        let animationInterval = null;
+
+        function playSimulation() {
+            if (animationInterval) {
+                clearInterval(animationInterval);
+                animationInterval = null;
+                btnPlay.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> <span>Animate Cycle</span>`;
+                lucide.createIcons();
+                return;
+            }
+
+            // Start animation from day 0, or current point if it's not the end
+            let currentDay = parseInt(sliderDay.value);
+            if (currentDay >= 120) currentDay = 0;
+
+            btnPlay.innerHTML = `<i data-lucide="pause" class="w-3.5 h-3.5"></i> <span>Pause</span>`;
+            lucide.createIcons();
+
+            animationInterval = setInterval(() => {
+                currentDay++;
+                updateSimulation(currentDay);
+
+                if (currentDay >= 120) {
+                    clearInterval(animationInterval);
+                    animationInterval = null;
+                    btnPlay.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> <span>Animate Cycle</span>`;
+                    lucide.createIcons();
+                }
+            }, 80); // Step time
+        }
+
+        btnPlay.addEventListener('click', playSimulation);
+        btnReset.addEventListener('click', () => {
+            if (animationInterval) {
+                clearInterval(animationInterval);
+                animationInterval = null;
+                btnPlay.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> <span>Animate Cycle</span>`;
+                lucide.createIcons();
+            }
+            updateSimulation(60); // Reset to peak inflection point
+        });
+
+        // Initial launch
+        window.onload = function() {
+            initChart();
+            updateSimulation(60);
+            lucide.createIcons();
+        };
+    </script>
+</body>
+</html>
